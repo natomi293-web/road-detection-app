@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Road Detector</title>
+</head>
+<body>
+    <h1>画像をアップロードして推論</h1>
+
+    <form method="POST" enctype="multipart/form-data">
+        <input type="file" name="image">
+        <button type="submit">推論する</button>
+    </form>
+
+    {% if result %}
+        <h2>推論結果</h2>
+        <img src="/static/result.jpg" width="600">
+    {% endif %}
+</body>
+</html>
+<a href="/logout">ログアウト</a>
