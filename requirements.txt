@@ -1,5 +1,5 @@
 flask
-inference-sdk
+roboflow
 supervision
 opencv-python
 python-dotenv
