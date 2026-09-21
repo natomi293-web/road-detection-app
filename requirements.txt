@@ -1,5 +1,5 @@
 flask
-inference
+inference-sdk
 supervision
 opencv-python
 python-dotenv
