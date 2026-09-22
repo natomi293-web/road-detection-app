@@ -12,7 +12,7 @@ from roboflow import Roboflow
 rf = Roboflow(api_key="PNvjzdIq1rlRsoeBvXon")
 
 project = rf.project("one-lane-road-detecter")
-model = project.version("rfdetr-small-t1").model
+model = project.version("2").model
 
 
 @app.route("/login", methods=["GET", "POST"])
