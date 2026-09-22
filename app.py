@@ -7,10 +7,12 @@ app = Flask(__name__)
 app.secret_key = "aqu126zhj923g"  # 適当な文字列でOK（セッション用）
 PASSWORD = "DOURO12"  # ← 港さんが決めるパスワードに変更
 
-model = get_model(
-    model_id="new-workspace-nep6p/one-lane-road-detecter-2-rfdetr-small-t1",
-    api_key="PNvjzdIq1rlRsoeBvXon"
-)
+from roboflow import Roboflow
+
+rf = Roboflow(api_key="PNvjzdIq1rlRsoeBvXon")
+project = rf.workspace().project("new-workspace-nep6p/one-lane-road-detecter-2-rfdetr-small-t1")
+model = project.version(1).model
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
