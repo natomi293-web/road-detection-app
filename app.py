@@ -11,7 +11,7 @@ from roboflow import Roboflow
 
 rf = Roboflow(api_key="PNvjzdIq1rlRsoeBvXon")
 project = rf.workspace("new-workspace-nep6p").project("one-lane-road-detecter-2")
-model = project.version(rfdetr-small-t1).model
+model = project.version("rfdetr-small-t1").model
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
