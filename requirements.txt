@@ -3,3 +3,4 @@ gunicorn
 roboflow
 opencv-python
 numpy
+supervision
