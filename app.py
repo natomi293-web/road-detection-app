@@ -11,7 +11,7 @@ from roboflow import Roboflow
 
 rf = Roboflow(api_key="PNvjzdIq1rlRsoeBvXon")
 
-project = rf.project("one-lane-road-detecter-2")
+project = rf.project("one-lane-road-detecter")
 model = project.version("rfdetr-small-t1").model
 
 
