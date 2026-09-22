@@ -1,5 +1,5 @@
 flask
+gunicorn
 roboflow
-supervision
 opencv-python
-python-dotenv
+numpy
