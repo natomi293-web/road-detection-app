@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, session
-from inference import get_model
+from roboflow import Roboflow
 import supervision as sv
 import cv2
 
