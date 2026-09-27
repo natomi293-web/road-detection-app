@@ -51,4 +51,4 @@ def index():
 
         return render_template("index.html", result=True)
 
-        return render_template("index.html", result=False)
+    return render_template("index.html", result=False)
