@@ -5,16 +5,12 @@ import cv2
 import os
 
 app = Flask(__name__)
-app.secret_key = "aqu126zhj923g"  # 適当な文字列でOK（セッション用）
-PASSWORD = "DOURO12"  # ← 港さんが決めるパスワードに変更
+app.secret_key = "aqu126zhj923g"
+PASSWORD = "DOURO12"
 
-# ★ Render の環境変数を使う（ハードコードしない）
 rf = Roboflow(api_key=os.getenv("ROBOFLOW_API_KEY"))
-
-# ★ workspace を指定しないと Cloud API は model=None になる
 project = rf.workspace("new-workspace-nep6p").project("one-lane-road-detecter")
 model = project.version(2).model
-
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -25,7 +21,6 @@ def login():
         else:
             return "パスワードが違います"
     return render_template("login.html")
-
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -39,12 +34,10 @@ def index():
 
         image = cv2.imread(filepath)
 
-        # ★ infer() → predict() に変更（Cloud API は infer を持たない）
         result = model.predict(image).json()
 
-        # ★ Cloud API の結果形式に合わせて変換
         predictions = result["predictions"]
-        detections = sv.Detections.from_inference(result)
+        detections = sv.Detections.from_inference(predictions)
 
         box_annotator = sv.BoxAnnotator(thickness=4)
         label_annotator = sv.LabelAnnotator(text_scale=1.5, text_thickness=2)
@@ -59,9 +52,3 @@ def index():
         return render_template("index.html", result=True)
 
     return render_template("index.html", result=False)
-
-
-@app.route("/logout")
-def logout():
-    session.pop("logged_in", None)
-    return redirect("/login")
