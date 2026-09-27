@@ -37,7 +37,8 @@ def index():
         result = model.predict(image).json()
 
         predictions = result["predictions"]
-        detections = sv.Detections.from_inference(result)
+        
+        detections = sv.Detections.from_inference(result["predictions"])
 
         box_annotator = sv.BoxAnnotator(thickness=4)
         label_annotator = sv.LabelAnnotator(text_scale=1.5, text_thickness=2)
