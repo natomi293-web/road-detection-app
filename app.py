@@ -36,8 +36,8 @@ def index():
 
         result = model.predict(image).json()
         
-    if "predictions" not in result:
-        return "Roboflow が予測を返しませんでした"
+if "predictions" not in result:
+    return "Roboflow が予測を返しませんでした"
 
 predictions = result["predictions"]
 
