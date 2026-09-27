@@ -65,7 +65,3 @@ def index():
 def logout():
     session.pop("logged_in", None)
     return redirect("/login")
-
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
