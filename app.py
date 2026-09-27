@@ -48,7 +48,7 @@ def index():
         annotated = label_annotator.annotate(scene=annotated, detections=detections, labels=labels)
 
         cv2.imwrite("static/result.jpg", annotated)
-
         return render_template("index.html", result=True)
 
     return render_template("index.html", result=False)
+
