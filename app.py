@@ -36,16 +36,17 @@ def index():
 
         result = model.predict(image).json()
 
-        predictions = result["predictions"]
-        detections = sv.Detections.from_inference(result)
-        
-        box_annotator = sv.BoxAnnotator(thickness=4)
-        label_annotator = sv.LabelAnnotator(text_scale=1.5, text_thickness=2)
+predictions = result["predictions"]
+detections = sv.Detections.from_inference(result)
 
-        labels = [p["class"] for p in predictions]
+box_annotator = sv.BoxAnnotator(thickness=4)
+label_annotator = sv.LabelAnnotator(text_scale=1.5, text_thickness=2)
 
-        annotated = box_annotator.annotate(scene=image, detections=detections)
-        annotated = label_annotator.annotate(scene=annotated, detections=detections, labels=labels)
+labels = [p["class"] for p in predictions]
+
+annotated = box_annotator.annotate(scene=image, detections=detections)
+annotated = label_annotator.annotate(scene=annotated, detections=detections, labels=labels)
+
 
         cv2.imwrite("static/result.jpg", annotated)
 
