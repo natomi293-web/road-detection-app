@@ -36,7 +36,11 @@ def index():
 
         result = model.predict(image).json()
 
-        predictions = result["predictions"]
+if "predictions" not in result:
+    return "Roboflow が予測を返しませんでした"
+
+predictions = result["predictions"]
+
         
         detections = sv.Detections.from_inference(result["predictions"])
 
@@ -48,7 +52,9 @@ def index():
         annotated = box_annotator.annotate(scene=image, detections=detections)
         annotated = label_annotator.annotate(scene=annotated, detections=detections, labels=labels)
 
-        cv2.imwrite("static/result.jpg", annotated)
+        output_path = os.path.join(os.getcwd(), "static", "result.jpg")
+cv2.imwrite(output_path, annotated)
+
         return render_template("index.html", result=True)
 
     return render_template("index.html", result=False)
