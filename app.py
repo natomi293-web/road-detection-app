@@ -12,6 +12,17 @@ PASSWORD = "DOURO12"
 rf = Roboflow(api_key=os.getenv("ROBOFLOW_API_KEY"))
 project = rf.workspace("new-workspace-nep6p").project("one-lane-road-detecter")
 model = project.version(2).model
+# ===== モデル読み込みチェック =====
+print("=== Roboflow Model Load Check ===")
+print("API Key:", os.getenv("ROBOFLOW_API_KEY"))
+
+try:
+    print("Workspace:", project.workspace)
+    print("Project:", project.name)
+    print("Model loaded:", model is not None)
+except Exception as e:
+    print("Roboflow load error:", e)
+# ==================================
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
