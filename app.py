@@ -13,7 +13,6 @@ rf = Roboflow(api_key=os.getenv("ROBOFLOW_API_KEY"))
 project = rf.workspace("new-workspace-nep6p").project("one-lane-road-detecter")
 model = project.version(2).model
 
-# ログインページ
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -24,7 +23,6 @@ def login():
             return "パスワードが違います"
     return render_template("login.html")
 
-# メインページ
 @app.route("/", methods=["GET", "POST"])
 def index():
     if not session.get("logged_in"):
@@ -32,20 +30,31 @@ def index():
 
     if request.method == "POST":
         file = request.files["image"]
+
+        # static フォルダが無いと Render で落ちるため必ず作成
+        os.makedirs("static", exist_ok=True)
+
         filepath = "static/upload.jpg"
         file.save(filepath)
 
+        # 画像読み込み
         image = cv2.imread(filepath)
-        result = model.predict(image).json()
+        if image is None:
+            return "画像が読み込めませんでした（Render のパス問題）"
+
+        # Roboflow 推論
+        result = model.predict(image)
+        result = result.json()
 
         if "predictions" not in result:
             return "Roboflow が予測を返しませんでした"
 
         predictions = result["predictions"]
 
-        # Detections 作成（インデント修正済み）
+        # supervision 用に変換
         detections = sv.Detections.from_inference(predictions)
 
+        # アノテーション作成
         box_annotator = sv.BoxAnnotator(thickness=4)
         label_annotator = sv.LabelAnnotator(text_scale=1.5, text_thickness=2)
 
@@ -54,7 +63,7 @@ def index():
         annotated = box_annotator.annotate(scene=image, detections=detections)
         annotated = label_annotator.annotate(scene=annotated, detections=detections, labels=labels)
 
-        output_path = os.path.join(os.getcwd(), "static", "result.jpg")
+        output_path = os.path.join("static", "result.jpg")
         cv2.imwrite(output_path, annotated)
 
         return render_template("index.html", result=True)
