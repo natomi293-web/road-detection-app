@@ -10,7 +10,7 @@ PASSWORD = "DOURO12"
 
 # Roboflow モデル読み込み
 rf = Roboflow(api_key=os.getenv("ROBOFLOW_API_KEY"))
-project = rf.workspace("new-workspace-nep6p").project("one-lane-road-detecter")
+project = rf.project("one-lane-road-detecter")
 model = project.version(2).model
 # ===== モデル読み込みチェック =====
 print("=== Roboflow Model Load Check ===")
