@@ -17,7 +17,6 @@ print("=== Roboflow Model Load Check ===")
 print("API Key:", os.getenv("ROBOFLOW_API_KEY"))
 
 try:
-    print("Workspace:", project.workspace)
     print("Project:", project.name)
     print("Model loaded:", model is not None)
 except Exception as e:
