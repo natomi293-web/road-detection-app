@@ -11,7 +11,7 @@ PASSWORD = "DOURO12"
 # Roboflow モデル読み込み
 rf = Roboflow(api_key=os.getenv("ROBOFLOW_API_KEY"))
 project = rf.project("one-lane-road-detecter")
-model = project.version(2).model
+model = project.version(2)
 # ===== モデル読み込みチェック =====
 print("=== Roboflow Model Load Check ===")
 print("API Key:", os.getenv("ROBOFLOW_API_KEY"))
@@ -53,7 +53,7 @@ def index():
             return "画像が読み込めませんでした（Render のパス問題）"
 
         # Roboflow 推論
-        result = model.predict(image, hosted=True).json()
+        result = model.predict(filepath, hosted=True).json()
 
         if "predictions" not in result:
             return "Roboflow が予測を返しませんでした"
