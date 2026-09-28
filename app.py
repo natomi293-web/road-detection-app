@@ -54,7 +54,6 @@ def index():
 
         # Roboflow 推論
         result = model.predict(image, hosted=True).json()
-        result = result.json()
 
         if "predictions" not in result:
             return "Roboflow が予測を返しませんでした"
