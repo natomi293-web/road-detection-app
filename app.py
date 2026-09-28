@@ -53,7 +53,7 @@ def index():
             return "画像が読み込めませんでした（Render のパス問題）"
 
         # Roboflow 推論
-        result = model.predict(image)
+        result = model.predict(image, hosted=True).json()
         result = result.json()
 
         if "predictions" not in result:
@@ -62,7 +62,7 @@ def index():
         predictions = result["predictions"]
 
         # supervision 用に変換
-        detections = sv.Detections.from_inference(predictions)
+        detections = sv.Detections.from_inference(result["predictions"])
 
         # アノテーション作成
         box_annotator = sv.BoxAnnotator(thickness=4)
