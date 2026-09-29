@@ -53,7 +53,28 @@ def index():
         predictions = result["predictions"]
 
         # ★ supervision は result 全体を渡す
-        detections = sv.Detections.from_inference(result)
+        # ★ supervision 用に predictions を手動で変換
+xyxy = []
+confidence = []
+class_id = []
+
+for p in predictions:
+    # Roboflow Cloud API は x,y,w,h なので xyxy に変換
+    x1 = p["x"] - p["width"] / 2
+    y1 = p["y"] - p["height"] / 2
+    x2 = p["x"] + p["width"] / 2
+    y2 = p["y"] + p["height"] / 2
+
+    xyxy.append([x1, y1, x2, y2])
+    confidence.append(p.get("confidence", 1.0))
+    class_id.append(0)  # クラスは 1 種類なので 0 固定
+
+detections = sv.Detections(
+    xyxy=xyxy,
+    confidence=confidence,
+    class_id=class_id
+)
+
 
         box_annotator = sv.BoxAnnotator(thickness=4)
         label_annotator = sv.LabelAnnotator(text_scale=1.5, text_thickness=2)
@@ -69,3 +90,6 @@ def index():
         return render_template("index.html", result=True)
 
     return render_template("index.html", result=False)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
