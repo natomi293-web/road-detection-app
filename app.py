@@ -9,6 +9,7 @@ app = Flask(__name__)
 app.secret_key = "aqu126zhj923g"
 PASSWORD = "DOURO12"
 
+# Roboflow モデル読み込み
 rf = Roboflow(api_key=os.getenv("ROBOFLOW_API_KEY"))
 project = rf.project("one-lane-road-detecter")
 model = project.version(2)   # Cloud API は version オブジェクトで OK
@@ -44,7 +45,7 @@ def index():
         _, buffer = cv2.imencode(".jpg", image)
         base64_image = base64.b64encode(buffer).decode("utf-8")
 
-        # ★ Cloud API 推論（これが唯一正しい）
+        # ★ Cloud API 推論
         result = model.predict(base64_image, hosted=True).json()
 
         if "predictions" not in result:
@@ -52,36 +53,28 @@ def index():
 
         predictions = result["predictions"]
 
-        # ★ supervision は result 全体を渡す
         # ★ supervision 用に predictions を手動で変換
         xyxy = []
         confidence = []
         class_id = []
 
-    for p in predictions:
-        # ★ supervision 用に predictions を手動で変換
-xyxy = []
-confidence = []
-class_id = []
+        for p in predictions:
+            x1 = p["x"] - p["width"] / 2
+            y1 = p["y"] - p["height"] / 2
+            x2 = p["x"] + p["width"] / 2
+            y2 = p["y"] + p["height"] / 2
 
-for p in predictions:
-    # Roboflow Cloud API は x,y,w,h なので xyxy に変換
-    x1 = p["x"] - p["width"] / 2
-    y1 = p["y"] - p["height"] / 2
-    x2 = p["x"] + p["width"] / 2
-    y2 = p["y"] + p["height"] / 2
+            xyxy.append([x1, y1, x2, y2])
+            confidence.append(p.get("confidence", 1.0))
+            class_id.append(0)
 
-    xyxy.append([x1, y1, x2, y2])
-    confidence.append(p.get("confidence", 1.0))
-    class_id.append(0)
+        detections = sv.Detections(
+            xyxy=xyxy,
+            confidence=confidence,
+            class_id=class_id
+        )
 
-detections = sv.Detections(
-    xyxy=xyxy,
-    confidence=confidence,
-    class_id=class_id
-)
-
-
+        # アノテーション作成
         box_annotator = sv.BoxAnnotator(thickness=4)
         label_annotator = sv.LabelAnnotator(text_scale=1.5, text_thickness=2)
 
@@ -96,6 +89,8 @@ detections = sv.Detections(
         return render_template("index.html", result=True)
 
     return render_template("index.html", result=False)
+
+# ★ Render 用ポート設定（必須）
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
