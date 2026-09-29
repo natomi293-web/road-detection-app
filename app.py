@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, redirect, session
 import os
 import cv2
-import base64
 from roboflow import Roboflow
 import supervision as sv
 
@@ -39,17 +38,15 @@ def index():
         if image is None:
             return "画像が読み込めませんでした（Render のパス問題）"
 
-        _, buffer = cv2.imencode(".jpg", image)
-        base64_image = base64.b64encode(buffer).decode("utf-8")
-
-        result = model.predict(base64_image, hosted=True).json()
+        # ★ Upload API 推論（Cloud API ではない）
+        result = model.predict(filepath).json()
 
         if "predictions" not in result:
             return "Roboflow が予測を返しませんでした"
 
         predictions = result["predictions"]
 
-        # ★ supervision 用に predictions を手動で変換
+        # supervision 用に変換
         xyxy = []
         confidence = []
         class_id = []
