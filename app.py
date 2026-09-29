@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, session
 import os
 import cv2
+import base64
 from roboflow import Roboflow
 import supervision as sv
 
@@ -8,20 +9,9 @@ app = Flask(__name__)
 app.secret_key = "aqu126zhj923g"
 PASSWORD = "DOURO12"
 
-# Roboflow モデル読み込み
 rf = Roboflow(api_key=os.getenv("ROBOFLOW_API_KEY"))
 project = rf.project("one-lane-road-detecter")
-model = project.version(2)
-# ===== モデル読み込みチェック =====
-print("=== Roboflow Model Load Check ===")
-print("API Key:", os.getenv("ROBOFLOW_API_KEY"))
-
-try:
-    print("Project:", project.name)
-    print("Model loaded:", model is not None)
-except Exception as e:
-    print("Roboflow load error:", e)
-# ==================================
+model = project.version(2)   # Cloud API は version オブジェクトで OK
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -41,9 +31,7 @@ def index():
     if request.method == "POST":
         file = request.files["image"]
 
-        # static フォルダが無いと Render で落ちるため必ず作成
         os.makedirs("static", exist_ok=True)
-
         filepath = "static/upload.jpg"
         file.save(filepath)
 
@@ -52,18 +40,21 @@ def index():
         if image is None:
             return "画像が読み込めませんでした（Render のパス問題）"
 
-        # Roboflow 推論
-        result = model.predict(filepath, hosted=True).json()
+        # ★ base64 に変換して Cloud API に渡す
+        _, buffer = cv2.imencode(".jpg", image)
+        base64_image = base64.b64encode(buffer).decode("utf-8")
+
+        # ★ Cloud API 推論（これが唯一正しい）
+        result = model.predict(base64_image, hosted=True).json()
 
         if "predictions" not in result:
             return "Roboflow が予測を返しませんでした"
 
         predictions = result["predictions"]
 
-        # supervision 用に変換
-        detections = sv.Detections.from_inference(result["predictions"])
+        # ★ supervision は result 全体を渡す
+        detections = sv.Detections.from_inference(result)
 
-        # アノテーション作成
         box_annotator = sv.BoxAnnotator(thickness=4)
         label_annotator = sv.LabelAnnotator(text_scale=1.5, text_thickness=2)
 
