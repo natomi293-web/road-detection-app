@@ -10,7 +10,7 @@ PASSWORD = "DOURO12"
 
 rf = Roboflow(api_key=os.getenv("ROBOFLOW_API_KEY"))
 project = rf.project("one-lane-road-detecter")
-model = project.version(2)
+model = project.version(2).model
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -39,7 +39,6 @@ def index():
             return "画像が読み込めませんでした（Render のパス問題）"
 
         # ★ Upload API 推論（Cloud API ではない）
-        model = project.version(2)
         result = model.predict(filepath).json()
 
         if "predictions" not in result:
