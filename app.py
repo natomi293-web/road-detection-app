@@ -5,6 +5,7 @@ import requests
 from PIL import Image
 import io
 import supervision as sv
+import numpy as np
 
 app = Flask(__name__)
 app.secret_key = "aqu126zhj923g"
@@ -32,13 +33,9 @@ def index():
     if request.method == "POST":
         file = request.files["image"]
 
-        os.makedirs("static", exist_ok=True)
-        filepath = "static/upload.jpg"
-        file.save(filepath)
-
-        # ★ Pillow で画像を読み込む（Render で壊れない）
+        # ★ ファイル保存をやめて、直接読み込む
         try:
-            image = Image.open(filepath).convert("RGB")
+            image = Image.open(file.stream).convert("RGB")
         except:
             return "画像が読み込めませんでした（Pillow 読み込み失敗）"
 
@@ -60,11 +57,12 @@ def index():
 
         response = requests.post(url, params=params, json=data)
         result = response.json()
+
         print("=== Roboflow Response ===")
         print(result)
-        
+
         if "predictions" not in result:
-            return "Roboflow が予測を返しませんでした"
+            return f"Roboflow が予測を返しませんでした: {result}"
 
         predictions = result["predictions"]
 
@@ -89,8 +87,7 @@ def index():
             class_id=class_id
         )
 
-        # Pillow → supervision 用に numpy に変換
-        import numpy as np
+        # Pillow → numpy
         np_image = np.array(image)
 
         box_annotator = sv.BoxAnnotator(thickness=4)
@@ -101,6 +98,7 @@ def index():
         annotated = box_annotator.annotate(scene=np_image, detections=detections)
         annotated = label_annotator.annotate(scene=annotated, detections=detections, labels=labels)
 
+        # ★ 結果画像を保存
         output_path = os.path.join("static", "result.jpg")
         Image.fromarray(annotated).save(output_path)
 
