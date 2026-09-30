@@ -46,7 +46,7 @@ def index():
 
         # ★ Cloud API 推論（hosted=True が必須）
         version = project.version(2)
-        result = model.predict(base64_image, hosted=True).json()
+        result = version.predict(base64_image, hosted=True).json()
 
         if "predictions" not in result:
             return "Roboflow が予測を返しませんでした"
