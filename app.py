@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, session
 import os
 import cv2
+import base64
 from roboflow import Roboflow
 import supervision as sv
 
@@ -10,7 +11,7 @@ PASSWORD = "DOURO12"
 
 rf = Roboflow(api_key=os.getenv("ROBOFLOW_API_KEY"))
 project = rf.project("one-lane-road-detecter")
-model = project.version(2).model
+model = project.version(2).model   # ★ 正しい
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -34,13 +35,17 @@ def index():
         filepath = "static/upload.jpg"
         file.save(filepath)
 
+        # 画像読み込み
         image = cv2.imread(filepath)
         if image is None:
             return "画像が読み込めませんでした（Render のパス問題）"
 
-        # ★ Upload API 推論（Cloud API ではない）
-        model = project.version(2).model
-        result = model.predict(filepath).json()
+        # ★ Cloud API 用に base64 に変換
+        _, buffer = cv2.imencode(".jpg", image)
+        base64_image = base64.b64encode(buffer).decode("utf-8")
+
+        # ★ Cloud API 推論（hosted=True が必須）
+        result = model.predict(base64_image, hosted=True).json()
 
         if "predictions" not in result:
             return "Roboflow が予測を返しませんでした"
