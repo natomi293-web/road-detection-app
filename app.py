@@ -33,9 +33,13 @@ def index():
     if request.method == "POST":
         file = request.files["image"]
 
-        # ★ ファイル保存をやめて、直接読み込む
+        # ★ 画像をバイトとして直接読み込む（Render で壊れない）
+        file_bytes = file.read()
+        if len(file_bytes) == 0:
+            return "画像が壊れています（0バイト）"
+
         try:
-            image = Image.open(file.stream).convert("RGB")
+            image = Image.open(io.BytesIO(file_bytes)).convert("RGB")
         except:
             return "画像が読み込めませんでした（Pillow 読み込み失敗）"
 
