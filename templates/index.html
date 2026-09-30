@@ -1,21 +1,4 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <title>Road Detector</title>
-</head>
-<body>
-    <h1>Road Detector</h1>
-
-    {% if result %}
-        <p>結果画像:</p>
-        <img src="/static/result.jpg" width="500">
-    {% endif %}
-
-    <form method="POST" enctype="multipart/form-data">
-        <input type="file" name="image" accept="image/*" required>
-        <button type="submit">送信</button>
-    </form>
-
-</body>
-</html>
+<form method="POST">
+    <input type="text" name="image_url" placeholder="画像URLを入力" required>
+    <button type="submit">送信</button>
+</form>
