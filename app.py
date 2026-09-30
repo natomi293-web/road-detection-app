@@ -60,7 +60,9 @@ def index():
 
         response = requests.post(url, params=params, json=data)
         result = response.json()
-
+        print("=== Roboflow Response ===")
+        print(result)
+        
         if "predictions" not in result:
             return "Roboflow が予測を返しませんでした"
 
