@@ -31,24 +31,19 @@ def index():
         return redirect("/login")
 
     if request.method == "POST":
-        file = request.files["image"]
+        base64_image = request.form.get("base64")
 
-        # ★ 画像をバイトとして直接読み込む（Render で壊れない）
-        file_bytes = file.read()
-        if len(file_bytes) == 0:
-            return "画像が壊れています（0バイト）"
+        if not base64_image:
+            return "base64 が受け取れていません（画像が壊れています）"
 
+        # base64 → Pillow Image
         try:
-            image = Image.open(io.BytesIO(file_bytes)).convert("RGB")
-        except:
-            return "画像が読み込めませんでした（Pillow 読み込み失敗）"
+            image_bytes = base64.b64decode(base64_image)
+            image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        except Exception as e:
+            return f"画像の読み込みに失敗しました: {e}"
 
-        # ★ Pillow → JPEG → base64
-        buffer = io.BytesIO()
-        image.save(buffer, format="JPEG")
-        base64_image = base64.b64encode(buffer.getvalue()).decode("utf-8")
-
-        # ★ Roboflow Cloud API (POST)
+        # Roboflow Cloud API (POST)
         url = f"https://detect.roboflow.com/{PROJECT_NAME}/{VERSION}"
         params = {
             "api_key": ROBOFLOW_API_KEY,
@@ -91,7 +86,6 @@ def index():
             class_id=class_id
         )
 
-        # Pillow → numpy
         np_image = np.array(image)
 
         box_annotator = sv.BoxAnnotator(thickness=4)
@@ -102,7 +96,6 @@ def index():
         annotated = box_annotator.annotate(scene=np_image, detections=detections)
         annotated = label_annotator.annotate(scene=annotated, detections=detections, labels=labels)
 
-        # ★ 結果画像を保存
         output_path = os.path.join("static", "result.jpg")
         Image.fromarray(annotated).save(output_path)
 
