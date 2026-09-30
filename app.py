@@ -39,6 +39,7 @@ def index():
             return "画像が読み込めませんでした（Render のパス問題）"
 
         # ★ Upload API 推論（Cloud API ではない）
+        model = project.version(2).model
         result = model.predict(filepath).json()
 
         if "predictions" not in result:
