@@ -12,30 +12,10 @@
         <img src="/static/result.jpg" width="500">
     {% endif %}
 
-    <form id="uploadForm" method="POST">
-        <input type="file" id="imageInput" accept="image/*" required>
-        <input type="hidden" name="base64" id="base64Field">
+    <form method="POST" enctype="multipart/form-data">
+        <input type="file" name="image" accept="image/*" required>
         <button type="submit">送信</button>
     </form>
-
-    <script>
-        document.getElementById("uploadForm").addEventListener("submit", function(e) {
-            e.preventDefault();
-
-            const file = document.getElementById("imageInput").files[0];
-            const reader = new FileReader();
-
-            reader.onload = function() {
-                // DataURL → base64 部分だけ抽出
-                const base64 = reader.result.split(",")[1];
-                document.getElementById("base64Field").value = base64;
-
-                e.target.submit();
-            };
-
-            reader.readAsDataURL(file);
-        });
-    </script>
 
 </body>
 </html>
