@@ -45,6 +45,7 @@ def index():
         base64_image = base64.b64encode(buffer).decode("utf-8")
 
         # ★ Cloud API 推論（hosted=True が必須）
+        version = project.version(2)
         result = model.predict(base64_image, hosted=True).json()
 
         if "predictions" not in result:
