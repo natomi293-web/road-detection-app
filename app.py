@@ -1,15 +1,15 @@
 from flask import Flask, render_template, request, redirect, session
 import os
-import cv2
 import base64
 import requests
+from PIL import Image
+import io
 import supervision as sv
 
 app = Flask(__name__)
 app.secret_key = "aqu126zhj923g"
 PASSWORD = "DOURO12"
 
-# Roboflow 設定
 ROBOFLOW_API_KEY = os.getenv("ROBOFLOW_API_KEY")
 PROJECT_NAME = "one-lane-road-detecter"
 VERSION = 2
@@ -36,14 +36,16 @@ def index():
         filepath = "static/upload.jpg"
         file.save(filepath)
 
-        # 画像読み込み
-        image = cv2.imread(filepath)
-        if image is None:
-            return "画像が読み込めませんでした（Render のパス問題）"
+        # ★ Pillow で画像を読み込む（Render で壊れない）
+        try:
+            image = Image.open(filepath).convert("RGB")
+        except:
+            return "画像が読み込めませんでした（Pillow 読み込み失敗）"
 
-        # ★ Cloud API 用に base64 に変換
-        _, buffer = cv2.imencode(".jpg", image)
-        base64_image = base64.b64encode(buffer).decode("utf-8")
+        # ★ Pillow → JPEG → base64
+        buffer = io.BytesIO()
+        image.save(buffer, format="JPEG")
+        base64_image = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
         # ★ Roboflow Cloud API (POST)
         url = f"https://detect.roboflow.com/{PROJECT_NAME}/{VERSION}"
@@ -57,11 +59,7 @@ def index():
         }
 
         response = requests.post(url, params=params, json=data)
-
-        try:
-            result = response.json()
-        except:
-            return "Roboflow の応答が JSON ではありません"
+        result = response.json()
 
         if "predictions" not in result:
             return "Roboflow が予測を返しませんでした"
@@ -89,16 +87,20 @@ def index():
             class_id=class_id
         )
 
+        # Pillow → supervision 用に numpy に変換
+        import numpy as np
+        np_image = np.array(image)
+
         box_annotator = sv.BoxAnnotator(thickness=4)
         label_annotator = sv.LabelAnnotator(text_scale=1.5, text_thickness=2)
 
         labels = [p["class"] for p in predictions]
 
-        annotated = box_annotator.annotate(scene=image, detections=detections)
+        annotated = box_annotator.annotate(scene=np_image, detections=detections)
         annotated = label_annotator.annotate(scene=annotated, detections=detections, labels=labels)
 
         output_path = os.path.join("static", "result.jpg")
-        cv2.imwrite(output_path, annotated)
+        Image.fromarray(annotated).save(output_path)
 
         return render_template("index.html", result=True)
 
