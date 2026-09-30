@@ -2,16 +2,17 @@ from flask import Flask, render_template, request, redirect, session
 import os
 import cv2
 import base64
-from roboflow import Roboflow
+import requests
 import supervision as sv
 
 app = Flask(__name__)
 app.secret_key = "aqu126zhj923g"
 PASSWORD = "DOURO12"
 
-rf = Roboflow(api_key=os.getenv("ROBOFLOW_API_KEY"))
-project = rf.project("one-lane-road-detecter")
-model = project.version(2).model   # ★ 正しい
+# Roboflow 設定
+ROBOFLOW_API_KEY = os.getenv("ROBOFLOW_API_KEY")
+PROJECT_NAME = "one-lane-road-detecter"
+VERSION = 2
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -44,9 +45,23 @@ def index():
         _, buffer = cv2.imencode(".jpg", image)
         base64_image = base64.b64encode(buffer).decode("utf-8")
 
-        # ★ Cloud API 推論（hosted=True が必須）
-        model = project.version(2).model
-        result = model.predict(base64_image, hosted=True).json()
+        # ★ Roboflow Cloud API (POST)
+        url = f"https://detect.roboflow.com/{PROJECT_NAME}/{VERSION}"
+        params = {
+            "api_key": ROBOFLOW_API_KEY,
+            "confidence": 40,
+            "overlap": 30
+        }
+        data = {
+            "image": base64_image
+        }
+
+        response = requests.post(url, params=params, json=data)
+
+        try:
+            result = response.json()
+        except:
+            return "Roboflow の応答が JSON ではありません"
 
         if "predictions" not in result:
             return "Roboflow が予測を返しませんでした"
