@@ -31,19 +31,24 @@ def index():
         return redirect("/login")
 
     if request.method == "POST":
-        base64_image = request.form.get("base64")
+        file = request.files["image"]
 
-        if not base64_image:
-            return "base64 が受け取れていません（画像が壊れています）"
+        # ★ 画像をバイトとして直接読み込む
+        file_bytes = file.read()
+        if len(file_bytes) == 0:
+            return "画像が壊れています（0バイト）"
 
-        # base64 → Pillow Image
         try:
-            image_bytes = base64.b64decode(base64_image)
-            image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+            image = Image.open(io.BytesIO(file_bytes)).convert("RGB")
         except Exception as e:
             return f"画像の読み込みに失敗しました: {e}"
 
-        # Roboflow Cloud API (POST)
+        # ★ Pillow → JPEG → base64
+        buffer = io.BytesIO()
+        image.save(buffer, format="JPEG")
+        base64_image = base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+        # ★ Roboflow Cloud API (POST)
         url = f"https://detect.roboflow.com/{PROJECT_NAME}/{VERSION}"
         params = {
             "api_key": ROBOFLOW_API_KEY,
